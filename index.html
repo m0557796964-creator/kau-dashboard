@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة القيادة الاستراتيجية - المجلات العلمية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* =========================================
+           الألوان الجديدة المعتمدة في الدليل 
+           ========================================= */
+        :root {
+            --primary-dark: #2E8B8B;   /* الدرجة الغامقة */
+            --primary-mid: #2FA7A1;    /* الدرجة المتوسطة */
+            --primary-light: #36C2B4;  /* الدرجة الفاتحة */
+            --bg-light: #f4f7f6;       /* لون خلفية الصفحة */
+            --text-dark: #2b2b2b;      /* لون النصوص الأساسي */
+            --card-bg: #ffffff;        /* خلفية البطاقات (أبيض) */
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+        }
+
+        /* تنسيق القائمة الجانبية (مع التدرج اللوني بزاوية 120) */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(120deg, var(--primary-dark), var(--primary-light));
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding-top: 30px;
+            box-shadow: -3px 0 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            color: #ffffff;
+            padding: 0 15px;
+            line-height: 1.5;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 18px 25px;
+            text-align: right;
+            font-size: 1.1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-right: 5px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .tab-btn.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-right-color: #ffffff;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* تنسيق المحتوى الرئيسي */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .header {
+            margin-bottom: 35px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .header h1 {
+            color: var(--primary-dark);
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+        }
+
+        .header p {
+            margin: 0;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* شبكة البطاقات (Cards) */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+            text-align: center;
+            border-bottom: 5px solid var(--primary-mid);
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(46, 139, 139, 0.15);
+        }
+
+        .kpi-card.warning {
+            border-bottom-color: #e67e22; /* لون التنبيه */
+        }
+
+        .kpi-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #7f8c8d;
+        }
+
+        .kpi-card .number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+
+        .kpi-card.warning .number {
+            color: #e67e22;
+        }
+
+        /* حاوية الرسوم البيانية */
+        .chart-container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+            margin-bottom: 25px;
+        }
+
+        /* بطاقات الإجراءات (Action Cards) */
+        .action-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border-right: 6px solid var(--primary-light);
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+        }
+        
+        .action-card h3 {
+            margin-top: 0;
+            color: var(--primary-dark);
+            font-size: 1.3rem;
+        }
+
+        .action-card p {
+            line-height: 1.6;
+            margin-bottom: 0;
+            font-size: 1.05rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>لوحة القيادة التنفيذية<br>لإدارة المجلات العلمية</h2>
+        <button class="tab-btn active" onclick="openTab('overview', this)">📊 النظرة العامة</button>
+        <button class="tab-btn" onclick="openTab('indexing', this)">🌍 الفهرسة الدولية</button>
+        <button class="tab-btn" onclick="openTab('productivity', this)">📈 تحليل الإنتاجية</button>
+        <button class="tab-btn" onclick="openTab('actions', this)">💡 التوجيهات الاستراتيجية</button>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="overview" class="tab-content active">
+            <div class="header">
+                <h1>نظرة عامة على المحفظة البحثية</h1>
+                <p>موجز لإجمالي مجلات جامعة الملك عبدالعزيز وحالتها الحالية.</p>
+            </div>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <h3>إجمالي المجلات</h3>
+                    <p class="number">36</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>تنشر بالإنجليزية</h3>
+                    <p class="number">21</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>نشر مجاني للباحثين</h3>
+                    <p class="number">33</p>
+                </div>
+                <div class="kpi-card warning">
+                    <h3>مجلات مستحدثة مؤخراً</h3>
+                    <p class="number">10</p>
+                </div>
+            </div>
+
+            <div class="chart-container" style="height: 350px; width: 60%; margin: auto;">
+                <canvas id="specialtyChart"></canvas>
+            </div>
+        </div>
+
+        <div id="indexing" class="tab-content">
+            <div class="header">
+                <h1>الموقف التنافسي والفهرسة الدولية</h1>
+                <p>تحليل جودة الإدراج في قواعد البيانات العالمية والمحلية.</p>
+            </div>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <h3>Scopus</h3>
+                    <p class="number">22%</p>
+                    <p>8 مجلات</p>
+                </div>
+                <div class="kpi-card warning">
+                    <h3>Web of Science</h3>
+                    <p class="number">11%</p>
+                    <p>4 مجلات فقط</p>
+                </div>
+            </div>
+
+            <div class="action-card" style="border-right-color: #e74c3c; background-color: #fdf2f1;">
+                <h3 style="color: #c0392b;">فجوة استراتيجية ⚠️</h3>
+                <p>أكثر من 75% من المجلات تحتاج إلى مسار تطويري عاجل. الهدف ليس فقط "الإدراج"، بل يجب وضع مستهدفات مرحلية لنقل المجلات في Scopus و WoS إلى الربعين الأول والثاني (Q1 & Q2) لتعزيز السمعة الأكاديمية.</p>
+            </div>
+        </div>
+
+        <div id="productivity" class="tab-content">
+            <div class="header">
+                <h1>تحليل الإنتاجية وكثافة النشر</h1>
+                <p>توزيع الإنتاج البحثي على المجلات (مبني على 1195 مقالة).</p>
+            </div>
+            
+            <div class="chart-container" style="height: 400px;">
+                <canvas id="productivityChart"></canvas>
+            </div>
+
+            <div class="action-card" style="border-right-color: #e67e22;">
+                <h3 style="color: #d35400;">خطر التركز البحثي (Concentration Risk)</h3>
+                <p>تشير البيانات إلى أن 3 مجلات فقط تستحوذ على أكثر من 57% من إجمالي الإنتاج العلمي للجامعة. يوصى بدراسة وتطبيق نموذج العمل (Business Model) لهذه المجلات الناجحة على باقي المحفظة لرفع كفاءة دورة التحكيم والنشر.</p>
+            </div>
+        </div>
+
+        <div id="actions" class="tab-content">
+            <div class="header">
+                <h1>التوجيهات والقرارات المطلوبة</h1>
+                <p>لوحة الإجراءات الموصى بها للإدارة العليا لاتخاذ القرار.</p>
+            </div>
+
+            <div class="action-card">
+                <h3>1. برنامج التسريع الأكاديمي</h3>
+                <p>توجيه عمادة البحث العلمي بإطلاق "برنامج تسريع إدراج وفهرسة" يستهدف المجلات الواعدة (وخاصة الـ 10 مجلات الجديدة) لاستيفاء معايير التصنيف العالمية خلال 24 شهراً لتجاوز "وادي الموت" الافتراضي.</p>
+            </div>
+
+            <div class="action-card">
+                <h3>2. التوسع في الشراكات الدولية (Co-publishing)</h3>
+                <p>استنساخ التجربة الناجحة لمجلتي (المناخ) و(أنظمة الأرض) من خلال عقد شراكات استراتيجية مع دور نشر عالمية (مثل Springer Nature أو Elsevier) لإدارة بعض المجلات الواعدة لاختصار سنوات الفهرسة.</p>
+            </div>
+
+            <div class="action-card">
+                <h3>3. اعتماد مؤشرات حوكمة جديدة (KPIs)</h3>
+                <p>توجيه القطاعات المعنية بمراقبة مؤشرات الكفاءة التشغيلية مثل: معدل القبول، متوسط زمن التحكيم، ونسبة التنوع الجغرافي للمشاركين، مع وضع ضوابط صارمة لمراقبة <b>الاستشهاد الذاتي (Self-Citation)</b> لتجنب إيقاف المجلات من قواعد البيانات.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // دالة التبديل بين التبويبات
+        function openTab(tabName, elmnt) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).style.display = "block";
+            setTimeout(() => { document.getElementById(tabName).classList.add("active"); }, 50);
+            elmnt.classList.add("active");
+        }
+
+        // إعداد الرسوم البيانية باستخدام Chart.js
+        window.onload = function() {
+            Chart.defaults.font.family = "'Tajawal', sans-serif";
+            
+            // رسم بياني 1: التخصصات
+            var ctx1 = document.getElementById('specialtyChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['العلوم الطبيعية والهندسية', 'العلوم الصحية', 'الآداب والعلوم الإنسانية'],
+                    datasets: [{
+                        data: [14, 10, 12],
+                        // استخدام التدرجات اللونية الثلاثة المطلوبة
+                        backgroundColor: ['#2E8B8B', '#2FA7A1', '#36C2B4'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 14 } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // رسم بياني 2: الإنتاجية
+            var ctx2 = document.getElementById('productivityChart').getContext('2d');
+            
+            // إنشاء تأثير تدرج لوني للأعمدة
+            var gradientBar = ctx2.createLinearGradient(0, 0, 0, 400);
+            gradientBar.addColorStop(0, '#36C2B4'); // الدرجة الفاتحة من الأعلى
+            gradientBar.addColorStop(1, '#2E8B8B'); // الدرجة الغامقة من الأسفل
+
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['المناخ وعلوم الغلاف الجوي', 'أنظمة الأرض والبيئة', 'الآداب والعلوم الإنسانية', 'باقي المجلات (21 مجلة)'],
+                    datasets: [{
+                        label: 'عدد المقالات المنشورة',
+                        data: [392, 179, 116, 508],
+                        backgroundColor: [gradientBar, gradientBar, gradientBar, '#e0e0e0'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f0f0f0' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>
